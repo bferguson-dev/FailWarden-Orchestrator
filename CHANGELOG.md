@@ -22,3 +22,5 @@ All notable changes to this project will be documented in this file.
 - Persistence test suite for schema creation and record writes
 - Step 5 structured audit logging layer with per-execution log files
 - Audit log test coverage for required event fields and quoting behavior
+- Step 6 SSH executor with normalized execution result contract
+- SSH executor test coverage for success, failure, timeout, and host key modes

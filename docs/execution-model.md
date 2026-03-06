@@ -35,3 +35,9 @@ SQLite storage is now available for:
 ## Audit Status (Step 5)
 
 Structured text audit logging is now available with one log file per execution.
+
+## Executor Status (Step 6)
+
+SSH executor implementation is now available with normalized command result
+objects (`success`, `output`, `error`, `exit_status`, `duration_ms`,
+`metadata`).

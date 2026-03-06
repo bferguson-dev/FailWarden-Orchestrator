@@ -5,7 +5,7 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 5 in progress: structured audit logging layer implemented and tested.
+Step 6 in progress: SSH executor layer implemented and tested.
 Execution engine runtime is still intentionally not implemented yet.
 
 ## V1 Boundaries
