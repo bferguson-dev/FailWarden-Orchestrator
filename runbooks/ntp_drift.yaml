@@ -1,0 +1,61 @@
+name: ntp_drift
+description: Detect and correct NTP synchronization drift.
+version: "1.0"
+vars:
+  host_alias: linux-web-02
+entry_step: check_sync
+steps:
+  - id: check_sync
+    type: ssh
+    name: Check NTP synchronization status
+    command: "timedatectl show -p NTPSynchronized --value"
+    expect:
+      exit_code: 0
+      stdout_contains: "yes"
+    timeout: 20
+    retries: 0
+    retry_delay: 0
+    on_success: done
+    on_failure: restart_timesync
+
+  - id: restart_timesync
+    type: ssh
+    name: Restart systemd-timesyncd
+    command: "sudo systemctl restart systemd-timesyncd"
+    expect:
+      exit_code: 0
+    timeout: 30
+    retries: 1
+    retry_delay: 5
+    on_success: verify_sync
+    on_failure: escalate_ops
+
+  - id: verify_sync
+    type: ssh
+    name: Verify synchronization restored
+    command: "timedatectl show -p NTPSynchronized --value"
+    expect:
+      exit_code: 0
+      stdout_contains: "yes"
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: end
+    name: Time synchronized
+    summary: "NTP synchronization is healthy on {{ host_alias }}"
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate to operations
+    notify:
+      slack_enabled: true
+      email_enabled: true
+      slack_channel: "#ops-alerts"
+      email_to:
+        - "ops@example.local"
+      title: "Escalation: ntp_drift"
+      message: "Time sync remediation failed on {{ host_alias }}"

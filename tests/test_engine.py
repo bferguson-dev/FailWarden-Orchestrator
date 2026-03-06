@@ -322,3 +322,30 @@ def test_engine_escalation_notifies_all_and_records_outcomes(tmp_path) -> None:
     by_notifier = {item.notifier_type: item for item in notifications}
     assert by_notifier["slack"].status == "sent"
     assert by_notifier["email"].status == "failed"
+
+
+def test_engine_dry_run_does_not_call_executor_and_records_branch_preview() -> None:
+    runbook = make_runbook(retries=1)
+    executor = FakeExecutor(
+        [
+            ExecutionResult(
+                success=True,
+                output="active",
+                error=None,
+                exit_status=0,
+                duration_ms=100,
+                metadata={},
+            )
+        ]
+    )
+
+    engine = ExecutionEngine(executor, id_factory=lambda: "dry-001")
+    result = engine.run(runbook, target="linux-web-01", dry_run=True)
+
+    assert result.final_status == "dry_run"
+    assert result.step_path == ["check_service", "done"]
+    assert result.attempts == 1
+    assert result.dry_run_branch_map == {
+        "check_service": ["done", "escalate_ops"],
+    }
+    assert executor.calls == []

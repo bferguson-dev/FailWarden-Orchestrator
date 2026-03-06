@@ -30,3 +30,6 @@ All notable changes to this project will be documented in this file.
 - Notifier interface contracts and escalation notification tests
 - Step 9 concrete Slack webhook and SMTP email notifier implementations
 - Notifier tests for success and failure behaviors
+- Step 10 dry-run execution mode with simulated step attempts and branch preview
+- Step 11 five shipped runbooks under `runbooks/`
+- Step 12 CLI and documentation polish for end-to-end usage

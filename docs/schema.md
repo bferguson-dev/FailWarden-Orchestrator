@@ -150,6 +150,7 @@ Template checks:
 
 See runbook examples in:
 
+- `runbooks/` (shipped runbooks)
 - `runbooks/examples/valid/`
 - `runbooks/examples/invalid/`
 

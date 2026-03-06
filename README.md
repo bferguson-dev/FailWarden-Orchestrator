@@ -3,35 +3,104 @@
 FailWarden Orchestrator is a constrained, auditable YAML runbook executor for
 infrastructure remediation over SSH.
 
-## Status
+## What This Solves
 
-Step 9 in progress: concrete Slack and email notifier implementations added.
-Dry-run behavior is still intentionally not implemented yet.
+Ops teams often have documented runbooks, but incident response is still manual,
+inconsistent, and hard to audit. This project turns runbook intent into
+validated, executable, and traceable automation.
 
-## V1 Boundaries
+## V1 Scope
 
-V1 is intentionally SSH-only, CLI-only, SQLite-backed, and escalation-focused.
-It is not a general-purpose automation platform.
+Included in V1:
 
-Out of scope for V1 includes dashboards, additional executors/transports,
-enterprise integrations, RBAC/multi-tenancy, approvals, and checkpoint/resume.
+- YAML runbook model with compile-time validation
+- Jinja2 variable rendering with strict undefined behavior
+- SSH executor for Linux and Windows (PowerShell over SSH)
+- Linked-step orchestration with retries, timeout, and branching
+- Escalation flow with shared notifier context
+- Slack webhook and SMTP email notifiers
+- SQLite execution + step + notifier history
+- Structured per-execution audit logs
+- Dry-run mode with simulated branch preview
+- Five shipped runbooks
 
-## Project Layout
+Explicitly out of scope for V1:
 
-- `src/`: Python package source
-- `tests/`: test suite
-- `runbooks/`: shipped runbooks
-- `docs/`: architecture and design documents
+- Additional transports (WinRM, PSRP, HTTP, Ansible)
+- Dashboard and metrics stack
+- CMDB, approvals, RBAC, multi-tenancy, Vault
 
-## Development Checks
+## Current Status
 
-Run:
+Steps 1-12 are implemented in sequence for V1 scope.
+
+## Quick Start
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+python -m pip install -e '.[dev]'
 ./check.sh
 ```
 
-This script runs formatting, linting, security checks, and tests.
+Compile a runbook:
 
-Pre-commit secret scanning is also enforced with `gitleaks` via
-`.githooks/pre-commit`.
+```bash
+fwo compile --runbook runbooks/linux_service_down.yaml
+```
+
+Dry-run preview (no remote execution):
+
+```bash
+fwo run \
+  --runbook runbooks/linux_service_down.yaml \
+  --target linux-web-01 \
+  --host 10.0.0.10 \
+  --user ubuntu \
+  --ssh-key ~/.ssh/id_ed25519 \
+  --dry-run
+```
+
+Real run:
+
+```bash
+fwo run \
+  --runbook runbooks/linux_service_down.yaml \
+  --target linux-web-01 \
+  --host 10.0.0.10 \
+  --user ubuntu \
+  --ssh-key ~/.ssh/id_ed25519
+```
+
+Optional notifier env vars:
+
+- `FWO_SLACK_WEBHOOK_URL`
+- `FWO_SLACK_CHANNEL`
+- `FWO_SMTP_HOST`
+- `FWO_SMTP_PORT`
+- `FWO_SMTP_USERNAME`
+- `FWO_SMTP_PASSWORD`
+- `FWO_SMTP_FROM`
+- `FWO_SMTP_USE_TLS`
+
+## Shipped Runbooks
+
+- `runbooks/linux_service_down.yaml`
+- `runbooks/windows_service_down.yaml`
+- `runbooks/disk_full.yaml`
+- `runbooks/ntp_drift.yaml`
+- `runbooks/http_endpoint_down.yaml`
+
+## Repository Layout
+
+- `src/`: package implementation
+- `tests/`: unit and integration-style unit tests
+- `runbooks/`: shipped runbooks + schema examples
+- `docs/`: architecture and design references
+
+## Quality Gates
+
+- `./check.sh` runs format, lint, secret scan, security scan, dependency audit,
+  and tests.
+- `gitleaks` pre-commit hook blocks secret commits.

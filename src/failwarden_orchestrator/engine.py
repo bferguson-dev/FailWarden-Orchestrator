@@ -33,6 +33,7 @@ class EngineRunResult:
     final_status: str
     step_path: list[str]
     attempts: int
+    dry_run_branch_map: dict[str, list[str]] | None = None
 
 
 class ExecutionEngine:
@@ -63,13 +64,10 @@ class ExecutionEngine:
         dry_run: bool = False,
     ) -> EngineRunResult:
         """Execute one compiled runbook against one target host."""
-        if dry_run:
-            msg = "Dry-run execution belongs to Step 10 and is not enabled yet."
-            raise ValueError(msg)
-
         execution_id = self.id_factory()
         step_path: list[str] = []
         attempts = 0
+        dry_run_branch_map: dict[str, list[str]] | None = {} if dry_run else None
 
         if self.audit_store:
             self.audit_store.record_execution_start(
@@ -77,14 +75,14 @@ class ExecutionEngine:
                 runbook_name=runbook.name,
                 runbook_version=runbook.version,
                 target=target,
-                dry_run=False,
+                dry_run=dry_run,
             )
         if self.audit_logger:
             self.audit_logger.log_execution_start(
                 execution_id=execution_id,
                 runbook=runbook.name,
                 target=target,
-                dry_run=False,
+                dry_run=dry_run,
             )
 
         current_step_id = runbook.entry_step
@@ -94,6 +92,48 @@ class ExecutionEngine:
         while True:
             step = runbook.steps_by_id[current_step_id]
             step_path.append(step.id)
+
+            if dry_run and isinstance(step, SSHStep):
+                attempts += 1
+                if dry_run_branch_map is not None:
+                    dry_run_branch_map[step.id] = [step.on_success, step.on_failure]
+
+                started_at = _utc_now_iso()
+                ended_at = _utc_now_iso()
+                if self.audit_store:
+                    self.audit_store.record_step_attempt(
+                        attempt_id=str(uuid4()),
+                        execution_id=execution_id,
+                        step_id=step.id,
+                        step_type=step.type,
+                        attempt_number=1,
+                        started_at=started_at,
+                        ended_at=ended_at,
+                        success=False,
+                        exit_status=None,
+                        duration_ms=0,
+                        branch_taken="simulated",
+                        command_summary=step.command,
+                        error_summary=None,
+                    )
+                if self.audit_logger:
+                    self.audit_logger.log_step_attempt(
+                        execution_id=execution_id,
+                        runbook=runbook.name,
+                        target=target,
+                        step_id=step.id,
+                        step_type=step.type,
+                        attempt_number=1,
+                        result="simulated",
+                        branch="simulated",
+                        duration_ms=0,
+                        exit_status=None,
+                        error=None,
+                    )
+
+                # Dry-run follows on_success path as the preview default.
+                current_step_id = step.on_success
+                continue
 
             if isinstance(step, SSHStep):
                 next_step_id, step_attempts, failure_reason = self._run_ssh_step(
@@ -109,26 +149,29 @@ class ExecutionEngine:
                 continue
 
             if isinstance(step, EscalateStep):
-                final_status = "escalated"
-                self._run_escalation(
-                    execution_id=execution_id,
-                    runbook=runbook,
-                    target=target,
-                    step=step,
-                    failure_reason=last_failure_reason,
-                )
-                if self.audit_logger:
-                    self.audit_logger.log_escalation(
+                if dry_run:
+                    final_status = "dry_run"
+                else:
+                    final_status = "escalated"
+                    self._run_escalation(
                         execution_id=execution_id,
-                        runbook=runbook.name,
+                        runbook=runbook,
                         target=target,
-                        step_id=step.id,
-                        reason=last_failure_reason,
+                        step=step,
+                        failure_reason=last_failure_reason,
                     )
+                    if self.audit_logger:
+                        self.audit_logger.log_escalation(
+                            execution_id=execution_id,
+                            runbook=runbook.name,
+                            target=target,
+                            step_id=step.id,
+                            reason=last_failure_reason,
+                        )
                 break
 
             if isinstance(step, EndStep):
-                final_status = "success"
+                final_status = "dry_run" if dry_run else "success"
                 break
 
             msg = f"Unsupported step type encountered at runtime: {step.type}"
@@ -152,6 +195,7 @@ class ExecutionEngine:
             final_status=final_status,
             step_path=step_path,
             attempts=attempts,
+            dry_run_branch_map=dry_run_branch_map,
         )
 
     def _run_ssh_step(

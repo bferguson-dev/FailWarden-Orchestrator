@@ -1,35 +1,35 @@
 # ROADMAP
 
-## V1 (Current)
+## V1 (Implemented)
 
-- Repository skeleton and project standards
-- YAML schema and compile-time validation
-- SSH execution engine
-- Branching, retries, and per-step timeout
-- Escalation with Slack and email notifications
-- SQLite execution history
+- Schema + compile validation
+- SSH executor
+- Orchestration engine with retries/timeouts/branching
+- Escalation behavior + notifier fan-out
+- Slack and email notifier implementations
+- SQLite persistence
 - Structured audit logs
-- Dry-run mode
-- Five polished runbooks
+- Dry-run simulation mode
+- Five shipped runbooks
 
 ## V1.5
 
-- Better CLI ergonomics
-- Richer audit formatting
-- Execution replay from stored history
-- Optional JSON export
+- CLI ergonomics and better command help
+- Richer audit output formatting
+- Optional JSON export for run summaries
+- Better secrets setup docs
 
 ## V2
 
-- PSRP transport
+- PSRP support
 - HTTP executor
-- Dashboard
+- Optional dashboard
 - Metrics integration
-- Locking and checkpoint/resume
+- Notification fault isolation
 
 ## V3
 
-- CMDB and directory integrations
-- Approvals and chaining
+- Approvals and runbook chaining
+- CMDB and identity integrations
 - RBAC and multi-tenancy
-- Vault integration
+- Vault-backed secret sourcing

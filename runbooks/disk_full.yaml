@@ -1,0 +1,62 @@
+name: disk_full
+description: Detect disk pressure and clean known safe paths.
+version: "1.0"
+vars:
+  host_alias: linux-db-01
+  mount_point: /
+entry_step: check_disk
+steps:
+  - id: check_disk
+    type: ssh
+    name: Check disk usage percentage
+    command: "df -P {{ mount_point }} | tail -n 1 | awk '{print $5}' | tr -d '%'"
+    expect:
+      exit_code: 0
+      stdout_contains: "7"
+    timeout: 20
+    retries: 0
+    retry_delay: 0
+    on_success: cleanup_logs
+    on_failure: escalate_ops
+
+  - id: cleanup_logs
+    type: ssh
+    name: Rotate and vacuum journal safely
+    command: "sudo journalctl --vacuum-time=3d"
+    expect:
+      exit_code: 0
+    timeout: 60
+    retries: 1
+    retry_delay: 5
+    on_success: verify_disk
+    on_failure: escalate_ops
+
+  - id: verify_disk
+    type: ssh
+    name: Verify disk recovered
+    command: "df -P {{ mount_point }} | tail -n 1 | awk '{print $5}' | tr -d '%'"
+    expect:
+      exit_code: 0
+      stdout_contains: "6"
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: end
+    name: Disk healthy
+    summary: "Disk usage is acceptable on {{ host_alias }}"
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate to operations
+    notify:
+      slack_enabled: true
+      email_enabled: true
+      slack_channel: "#ops-alerts"
+      email_to:
+        - "ops@example.local"
+      title: "Escalation: disk_full"
+      message: "Disk remediation failed on {{ host_alias }}"

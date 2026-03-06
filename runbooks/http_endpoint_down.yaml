@@ -1,0 +1,63 @@
+name: http_endpoint_down
+description: Validate HTTP endpoint health from the target host and restart service.
+version: "1.0"
+vars:
+  host_alias: linux-web-01
+  endpoint_url: http://127.0.0.1/health
+  service_name: nginx
+entry_step: check_endpoint
+steps:
+  - id: check_endpoint
+    type: ssh
+    name: Check endpoint status code
+    command: "curl -fsS -o /dev/null -w '%{http_code}' '{{ endpoint_url }}'"
+    expect:
+      exit_code: 0
+      stdout_contains: "200"
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: restart_service
+
+  - id: restart_service
+    type: ssh
+    name: Restart web service
+    command: "sudo systemctl restart {{ service_name }}"
+    expect:
+      exit_code: 0
+    timeout: 30
+    retries: 1
+    retry_delay: 5
+    on_success: verify_endpoint
+    on_failure: escalate_ops
+
+  - id: verify_endpoint
+    type: ssh
+    name: Re-check endpoint after restart
+    command: "curl -fsS -o /dev/null -w '%{http_code}' '{{ endpoint_url }}'"
+    expect:
+      exit_code: 0
+      stdout_contains: "200"
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: end
+    name: Endpoint healthy
+    summary: "Endpoint check passed for {{ endpoint_url }} on {{ host_alias }}"
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate to operations
+    notify:
+      slack_enabled: true
+      email_enabled: true
+      slack_channel: "#ops-alerts"
+      email_to:
+        - "ops@example.local"
+      title: "Escalation: http_endpoint_down"
+      message: "Endpoint remediation failed for {{ endpoint_url }} on {{ host_alias }}"
