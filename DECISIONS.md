@@ -11,6 +11,7 @@
 - Line length limit: 88
 - `./check.sh` is required during reviewable phase gates
 - `gitleaks` runs before every commit via pre-commit hook
+- Direct pushes to `main` are blocked locally by pre-push hook
 - Security is a top-level requirement for all phases
 - Code style targets readability for average infrastructure engineers
 - Sensitive local files must use `.local.*` naming and stay out of Git

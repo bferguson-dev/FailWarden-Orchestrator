@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Block direct pushes to main by default.
+# Set ALLOW_MAIN_PUSH=1 only for exceptional maintenance workflows.
+if [[ "${ALLOW_MAIN_PUSH:-0}" != "1" ]]; then
+  while read -r _local_ref _local_sha remote_ref _remote_sha; do
+    if [[ "$remote_ref" == "refs/heads/main" ]]; then
+      echo "[pre-push] Direct pushes to main are blocked."
+      echo "[pre-push] Open a PR instead, or set ALLOW_MAIN_PUSH=1 to override."
+      exit 1
+    fi
+  done
+fi
