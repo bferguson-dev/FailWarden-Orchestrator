@@ -23,3 +23,11 @@ still pending later phases.
 
 Step walking, retries, timeout enforcement, and branch execution will be added
 in later phases.
+
+## Persistence Status (Step 4)
+
+SQLite storage is now available for:
+
+- execution start/end rows
+- step-attempt rows
+- notifier outcome rows

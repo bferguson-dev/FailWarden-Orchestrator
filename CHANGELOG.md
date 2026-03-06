@@ -17,3 +17,6 @@ All notable changes to this project will be documented in this file.
 - Step 3 runbook compiler with schema, semantic, and template validation
 - Typed compiled runbook models for execution-ready representation
 - Compile-layer test suite covering major failure modes
+- Step 4 SQLite persistence layer for executions, step attempts, and notifications
+- SQLite schema version tracking (`schema_version`)
+- Persistence test suite for schema creation and record writes

@@ -5,7 +5,7 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 3 in progress: compile/validation layer implemented and tested.
+Step 4 in progress: SQLite persistence layer implemented and tested.
 Execution engine runtime is still intentionally not implemented yet.
 
 ## V1 Boundaries
