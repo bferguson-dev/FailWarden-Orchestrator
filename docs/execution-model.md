@@ -68,3 +68,8 @@ Escalation fan-out is now implemented:
 Current limits:
 
 - concrete Slack and email notifier implementations are deferred to Step 9
+
+## Notifier Status (Step 9)
+
+Slack and email notifier implementations are now available with normalized send
+result handling.

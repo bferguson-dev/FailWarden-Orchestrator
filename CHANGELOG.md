@@ -28,3 +28,5 @@ All notable changes to this project will be documented in this file.
 - Engine test coverage for success path, retry flow, failure escalation path, and audit/persistence writes
 - Step 8 escalation fan-out with shared notifier context and outcome capture
 - Notifier interface contracts and escalation notification tests
+- Step 9 concrete Slack webhook and SMTP email notifier implementations
+- Notifier tests for success and failure behaviors

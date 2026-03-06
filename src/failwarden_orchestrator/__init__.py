@@ -12,8 +12,10 @@ from failwarden_orchestrator.executors import (
 )
 from failwarden_orchestrator.notifiers import (
     BaseNotifier,
+    EmailNotifier,
     NotificationContext,
     NotificationSendResult,
+    SlackNotifier,
 )
 from failwarden_orchestrator.persistence import (
     ExecutionRecord,
@@ -28,6 +30,7 @@ __all__ = [
     "AuditLogger",
     "BaseExecutor",
     "BaseNotifier",
+    "EmailNotifier",
     "ExecutionRecord",
     "ExecutionResult",
     "EngineRunResult",
@@ -40,6 +43,7 @@ __all__ = [
     "SSHAuthConfig",
     "SSHExecutor",
     "SSHTarget",
+    "SlackNotifier",
     "SQLiteAuditStore",
     "StepAttemptRecord",
     "ValidationIssue",

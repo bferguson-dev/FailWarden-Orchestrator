@@ -5,8 +5,8 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 8 in progress: escalation behavior and notifier fan-out implemented.
-Concrete Slack and email notifier implementations are still pending.
+Step 9 in progress: concrete Slack and email notifier implementations added.
+Dry-run behavior is still intentionally not implemented yet.
 
 ## V1 Boundaries
 
