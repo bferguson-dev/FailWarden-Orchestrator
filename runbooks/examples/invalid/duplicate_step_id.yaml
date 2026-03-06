@@ -1,0 +1,24 @@
+name: duplicate_step_id
+description: Invalid because two steps share the same id.
+vars:
+  service_name: nginx
+entry_step: check_service
+steps:
+  - id: check_service
+    type: ssh
+    name: Check service status
+    command: "systemctl is-active {{ service_name }}"
+    expect:
+      exit_code: 0
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: check_service
+    on_failure: escalate_ops
+
+  - id: check_service
+    type: escalate
+    name: Duplicate id
+    notify:
+      slack_enabled: true
+      email_enabled: false

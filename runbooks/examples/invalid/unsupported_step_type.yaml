@@ -1,0 +1,31 @@
+name: unsupported_step_type
+description: Invalid because V1 supports only ssh and escalate.
+vars:
+  endpoint: https://example.local/health
+entry_step: check_endpoint
+steps:
+  - id: check_endpoint
+    type: http
+    name: HTTP check is not supported in V1
+    command: "curl -f {{ endpoint }}"
+    expect:
+      exit_code: 0
+    timeout: 15
+    retries: 1
+    retry_delay: 3
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: escalate
+    name: End
+    notify:
+      slack_enabled: false
+      email_enabled: false
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate
+    notify:
+      slack_enabled: true
+      email_enabled: true

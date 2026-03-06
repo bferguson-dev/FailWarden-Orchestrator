@@ -1,0 +1,66 @@
+name: linux_service_down
+description: Restart and verify a Linux service, then escalate on failure.
+version: "1.0"
+vars:
+  service_name: nginx
+  host_alias: linux-web-01
+entry_step: check_service
+steps:
+  - id: check_service
+    type: ssh
+    name: Check service status
+    command: "systemctl is-active {{ service_name }}"
+    expect:
+      exit_code: 0
+      stdout_contains: active
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: restart_service
+
+  - id: restart_service
+    type: ssh
+    name: Restart service
+    command: "sudo systemctl restart {{ service_name }}"
+    expect:
+      exit_code: 0
+    timeout: 30
+    retries: 1
+    retry_delay: 5
+    on_success: verify_restart
+    on_failure: escalate_ops
+
+  - id: verify_restart
+    type: ssh
+    name: Verify service is active
+    command: "systemctl is-active {{ service_name }}"
+    expect:
+      exit_code: 0
+      stdout_contains: active
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: escalate
+    name: Success marker
+    notify:
+      slack_enabled: false
+      email_enabled: false
+      title: "Runbook completed"
+      message: "{{ service_name }} is active on {{ host_alias }}"
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate to operations
+    notify:
+      slack_enabled: true
+      email_enabled: true
+      slack_channel: "#ops-alerts"
+      email_to:
+        - "ops@example.local"
+      title: "Runbook escalation: {{ service_name }}"
+      message: "Service recovery failed on {{ host_alias }}"

@@ -1,0 +1,33 @@
+name: escalate_has_branch
+description: Invalid because escalate steps are terminal in V1.
+vars:
+  host_alias: linux-web-01
+entry_step: check_host
+steps:
+  - id: check_host
+    type: ssh
+    name: Check host responsiveness
+    command: "echo host-ok"
+    expect:
+      exit_code: 0
+      stdout_contains: host-ok
+    timeout: 10
+    retries: 0
+    retry_delay: 0
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: escalate
+    name: End
+    notify:
+      slack_enabled: false
+      email_enabled: false
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate and continue (invalid in V1)
+    notify:
+      slack_enabled: true
+      email_enabled: true
+    on_failure: done

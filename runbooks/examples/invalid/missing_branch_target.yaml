@@ -1,0 +1,24 @@
+name: missing_branch_target
+description: Invalid because on_failure points to a missing step id.
+vars:
+  service_name: nginx
+entry_step: check_service
+steps:
+  - id: check_service
+    type: ssh
+    name: Check service status
+    command: "systemctl is-active {{ service_name }}"
+    expect:
+      exit_code: 0
+    timeout: 20
+    retries: 1
+    retry_delay: 5
+    on_success: done
+    on_failure: no_such_step
+
+  - id: done
+    type: escalate
+    name: End
+    notify:
+      slack_enabled: false
+      email_enabled: false

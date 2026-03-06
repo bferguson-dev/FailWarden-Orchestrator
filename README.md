@@ -5,8 +5,8 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 1 complete: repository skeleton and documentation placeholders only.
-Runtime orchestration code is intentionally not implemented yet.
+Step 2 in progress: schema contract and validation documentation added.
+Runtime orchestration code is still intentionally not implemented yet.
 
 ## V1 Boundaries
 
