@@ -31,3 +31,7 @@ SQLite storage is now available for:
 - execution start/end rows
 - step-attempt rows
 - notifier outcome rows
+
+## Audit Status (Step 5)
+
+Structured text audit logging is now available with one log file per execution.

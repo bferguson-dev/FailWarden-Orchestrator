@@ -50,3 +50,30 @@ Step 4 introduces SQLite persistence for execution and step history.
 
 - Foreign keys are enabled on each DB connection.
 - Step 4 stores records only. Query/report surfaces will be extended later.
+
+## Structured Audit Log Files (Step 5)
+
+Step 5 adds per-execution structured text logs.
+
+- Log directory: configured by runtime (default planned: `.audit/`)
+- Log file name: `<execution_id>.log`
+- One event per line
+- Append-only per execution run
+
+### Event Fields
+
+Every line includes:
+
+- `ts`
+- `level`
+- `event`
+- `execution_id`
+- `runbook`
+- `target`
+
+Event-specific fields include:
+
+- step fields: `step_id`, `step_type`, `attempt`, `result`, `branch`, `duration_ms`
+- escalation fields: `reason`
+- notifier fields: `notifier`, `destination`, `result`, `error`
+- terminal execution field: `status`

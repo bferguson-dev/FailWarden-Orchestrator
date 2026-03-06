@@ -20,3 +20,5 @@ All notable changes to this project will be documented in this file.
 - Step 4 SQLite persistence layer for executions, step attempts, and notifications
 - SQLite schema version tracking (`schema_version`)
 - Persistence test suite for schema creation and record writes
+- Step 5 structured audit logging layer with per-execution log files
+- Audit log test coverage for required event fields and quoting behavior
