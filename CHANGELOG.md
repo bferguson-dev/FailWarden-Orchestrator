@@ -14,3 +14,6 @@ All notable changes to this project will be documented in this file.
 - JSON Schema reference for runbook structure
 - Validation error code contract
 - Valid and invalid sample runbooks for schema testing
+- Step 3 runbook compiler with schema, semantic, and template validation
+- Typed compiled runbook models for execution-ready representation
+- Compile-layer test suite covering major failure modes

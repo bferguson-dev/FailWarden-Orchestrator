@@ -1,0 +1,35 @@
+name: cycle_detected
+description: Invalid because the graph contains a cycle.
+vars: {}
+entry_step: step_a
+steps:
+  - id: step_a
+    type: ssh
+    name: Step A
+    command: "echo a"
+    expect:
+      exit_code: 0
+    timeout: 10
+    retries: 0
+    retry_delay: 0
+    on_success: step_b
+    on_failure: escalate_ops
+
+  - id: step_b
+    type: ssh
+    name: Step B
+    command: "echo b"
+    expect:
+      exit_code: 0
+    timeout: 10
+    retries: 0
+    retry_delay: 0
+    on_success: step_a
+    on_failure: escalate_ops
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate
+    notify:
+      slack_enabled: true
+      email_enabled: true

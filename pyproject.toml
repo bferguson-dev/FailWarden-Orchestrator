@@ -8,7 +8,11 @@ version = "0.1.0"
 description = "FailWarden Orchestrator (skeleton phase)"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "PyYAML>=6.0.0",
+  "Jinja2>=3.1.0",
+  "jsonschema>=4.23.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -23,9 +27,13 @@ fwo = "failwarden_orchestrator.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+failwarden_orchestrator = ["schema/*.json"]
 
 [tool.ruff]
 line-length = 88

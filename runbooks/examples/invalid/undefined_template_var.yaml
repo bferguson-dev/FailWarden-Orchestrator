@@ -1,0 +1,28 @@
+name: undefined_template_var
+description: Invalid because command references an undefined template variable.
+vars:
+  service_name: nginx
+entry_step: check
+steps:
+  - id: check
+    type: ssh
+    name: Check service
+    command: "systemctl status {{ missing_var }}"
+    expect:
+      exit_code: 0
+    timeout: 10
+    retries: 0
+    retry_delay: 0
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: end
+    name: Done
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate
+    notify:
+      slack_enabled: true
+      email_enabled: true

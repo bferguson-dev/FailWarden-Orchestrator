@@ -1,0 +1,31 @@
+name: unreachable_step
+description: Invalid because a step is not reachable from entry_step.
+vars: {}
+entry_step: check
+steps:
+  - id: check
+    type: ssh
+    name: Check
+    command: "echo ok"
+    expect:
+      exit_code: 0
+    timeout: 10
+    retries: 0
+    retry_delay: 0
+    on_success: done
+    on_failure: escalate_ops
+
+  - id: done
+    type: end
+    name: Done
+
+  - id: escalate_ops
+    type: escalate
+    name: Escalate
+    notify:
+      slack_enabled: true
+      email_enabled: true
+
+  - id: orphan
+    type: end
+    name: Orphan

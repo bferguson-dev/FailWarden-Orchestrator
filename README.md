@@ -5,8 +5,8 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 2 in progress: schema contract and validation documentation added.
-Runtime orchestration code is still intentionally not implemented yet.
+Step 3 in progress: compile/validation layer implemented and tested.
+Execution engine runtime is still intentionally not implemented yet.
 
 ## V1 Boundaries
 
