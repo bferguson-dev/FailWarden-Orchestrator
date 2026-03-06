@@ -41,6 +41,7 @@ Step policy:
 
 - `RBK301` `ssh` missing `on_success` or `on_failure`
 - `RBK302` `escalate` includes forbidden branch field
+- `RBK307` `end` includes forbidden branch or notifier field
 - `RBK303` timeout out of range
 - `RBK304` retries out of range
 - `RBK305` retry_delay out of range

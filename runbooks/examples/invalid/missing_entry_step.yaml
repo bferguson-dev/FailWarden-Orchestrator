@@ -16,8 +16,5 @@ steps:
     on_failure: escalate_ops
 
   - id: done
-    type: escalate
+    type: end
     name: End
-    notify:
-      slack_enabled: false
-      email_enabled: false

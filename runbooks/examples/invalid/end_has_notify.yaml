@@ -1,0 +1,11 @@
+name: end_has_notify
+description: Invalid because end steps cannot include notify in V1.
+vars: {}
+entry_step: done
+steps:
+  - id: done
+    type: end
+    name: End
+    notify:
+      slack_enabled: true
+      email_enabled: false

@@ -36,6 +36,9 @@
           },
           {
             "$ref": "#/$defs/escalate_step"
+          },
+          {
+            "$ref": "#/$defs/end_step"
           }
         ]
       }
@@ -164,6 +167,27 @@
         },
         "notify": {
           "$ref": "#/$defs/notify"
+        }
+      }
+    },
+    "end_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "end"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
         }
       }
     }

@@ -34,6 +34,7 @@ Supported values for `type`:
 
 - `ssh`
 - `escalate`
+- `end`
 
 No other step types are valid in V1.
 
@@ -82,6 +83,21 @@ Optional `notify` fields:
 Escalate steps are terminal in V1 and must not define `on_success` or
 `on_failure`.
 
+## End Step Shape
+
+Required fields:
+
+- `id` (string, unique)
+- `type` (must be `end`)
+- `name` (string)
+
+Optional fields:
+
+- `summary` (string, template-capable)
+
+End steps are terminal in V1 and must not define `on_success`, `on_failure`,
+or `notify`.
+
 ## Template Rendering Rules
 
 Jinja rendering uses `StrictUndefined`.
@@ -92,6 +108,7 @@ Template-capable fields (allowlist):
 - `steps[].command`
 - `steps[].notify.title`
 - `steps[].notify.message`
+- `steps[].summary`
 
 Template-disabled fields:
 
@@ -121,6 +138,7 @@ Step policy checks:
 
 - `ssh` steps must include both `on_success` and `on_failure`.
 - `escalate` steps must include `notify` routing and no branch fields.
+- `end` steps must not include branch or notifier fields.
 - Timeout/retry values must be in allowed ranges.
 
 Template checks:

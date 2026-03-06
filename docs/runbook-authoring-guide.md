@@ -13,6 +13,7 @@ This guide captures V1 authoring rules for readable and safe runbooks.
 
 - Keep step names operational and plain language.
 - Use explicit branch targets in every `ssh` step.
+- Use `end` for normal terminal success and `escalate` for human handoff.
 - Keep commands short and inspectable.
 - Keep secrets out of YAML. Use runtime values from env or injected vars.
 - Prefer predictable commands over clever shell expressions.

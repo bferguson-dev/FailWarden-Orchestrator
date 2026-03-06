@@ -1,5 +1,5 @@
 name: unsupported_step_type
-description: Invalid because V1 supports only ssh and escalate.
+description: Invalid because V1 supports only ssh, escalate, and end.
 vars:
   endpoint: https://example.local/health
 entry_step: check_endpoint
@@ -17,11 +17,8 @@ steps:
     on_failure: escalate_ops
 
   - id: done
-    type: escalate
+    type: end
     name: End
-    notify:
-      slack_enabled: false
-      email_enabled: false
 
   - id: escalate_ops
     type: escalate

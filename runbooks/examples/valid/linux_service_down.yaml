@@ -45,13 +45,9 @@ steps:
     on_failure: escalate_ops
 
   - id: done
-    type: escalate
-    name: Success marker
-    notify:
-      slack_enabled: false
-      email_enabled: false
-      title: "Runbook completed"
-      message: "{{ service_name }} is active on {{ host_alias }}"
+    type: end
+    name: Success
+    summary: "{{ service_name }} is active on {{ host_alias }}"
 
   - id: escalate_ops
     type: escalate
