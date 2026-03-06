@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Prevent committing secrets from staged changes.
+# --redact avoids printing full secret material in terminal output.
+echo "[pre-commit] Running gitleaks on staged changes"
+gitleaks protect --staged --no-banner --redact
+
+echo "[pre-commit] gitleaks passed"

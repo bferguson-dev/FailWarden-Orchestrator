@@ -1,0 +1,46 @@
+# Python runtime and cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+
+# Test and tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local runtime data
+.audit/
+.data/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Private/sensitive local files (use .local.* for anything not for GitHub)
+*.local.env
+*.local.yml
+*.local.yaml
+*.local.json
+*.local.toml
+
+# Secrets and private materials
+secrets/
+private/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Private lab and inventory content
+inventory/private/
+runbooks/private/
+lab/private/
