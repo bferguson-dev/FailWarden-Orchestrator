@@ -41,3 +41,18 @@ Structured text audit logging is now available with one log file per execution.
 SSH executor implementation is now available with normalized command result
 objects (`success`, `output`, `error`, `exit_status`, `duration_ms`,
 `metadata`).
+
+## Engine Status (Step 7)
+
+Execution engine is now implemented for:
+
+- step walking from `entry_step`
+- expectation checks against command results
+- per-step retries with retry delay
+- branch selection (`on_success`, `on_failure`)
+- terminal handling for `end` and `escalate`
+
+Current limits:
+
+- dry-run mode is deferred to Step 10
+- notifier fan-out logic is deferred to Step 8

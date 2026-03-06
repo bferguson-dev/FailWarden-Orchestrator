@@ -2,6 +2,7 @@
 
 from failwarden_orchestrator.audit import AuditEvent, AuditLogger
 from failwarden_orchestrator.compiler import RunbookCompiler
+from failwarden_orchestrator.engine import EngineRunResult, ExecutionEngine
 from failwarden_orchestrator.executors import (
     BaseExecutor,
     ExecutionResult,
@@ -23,6 +24,8 @@ __all__ = [
     "BaseExecutor",
     "ExecutionRecord",
     "ExecutionResult",
+    "EngineRunResult",
+    "ExecutionEngine",
     "NotificationRecord",
     "RunbookCompiler",
     "RunbookValidationError",

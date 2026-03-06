@@ -5,8 +5,8 @@ infrastructure remediation over SSH.
 
 ## Status
 
-Step 6 in progress: SSH executor layer implemented and tested.
-Execution engine runtime is still intentionally not implemented yet.
+Step 7 in progress: execution engine implemented and tested.
+Escalation notifier behavior is still intentionally not implemented yet.
 
 ## V1 Boundaries
 

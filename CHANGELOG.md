@@ -24,3 +24,5 @@ All notable changes to this project will be documented in this file.
 - Audit log test coverage for required event fields and quoting behavior
 - Step 6 SSH executor with normalized execution result contract
 - SSH executor test coverage for success, failure, timeout, and host key modes
+- Step 7 execution engine for step walking, branching, retries, and terminal states
+- Engine test coverage for success path, retry flow, failure escalation path, and audit/persistence writes
