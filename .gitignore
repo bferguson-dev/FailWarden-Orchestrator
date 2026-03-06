@@ -25,6 +25,9 @@ dist/
 .env.*
 !.env.example
 
+# Private working notes
+docs/interview-notes.md
+
 # Private/sensitive local files (use .local.* for anything not for GitHub)
 *.local.env
 *.local.yml

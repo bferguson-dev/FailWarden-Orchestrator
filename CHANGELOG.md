@@ -26,3 +26,5 @@ All notable changes to this project will be documented in this file.
 - SSH executor test coverage for success, failure, timeout, and host key modes
 - Step 7 execution engine for step walking, branching, retries, and terminal states
 - Engine test coverage for success path, retry flow, failure escalation path, and audit/persistence writes
+- Step 8 escalation fan-out with shared notifier context and outcome capture
+- Notifier interface contracts and escalation notification tests

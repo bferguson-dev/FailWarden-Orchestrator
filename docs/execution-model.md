@@ -55,4 +55,16 @@ Execution engine is now implemented for:
 Current limits:
 
 - dry-run mode is deferred to Step 10
-- notifier fan-out logic is deferred to Step 8
+
+## Escalation Status (Step 8)
+
+Escalation fan-out is now implemented:
+
+- builds a shared notification context object
+- attempts every configured notifier
+- records notifier outcomes in SQLite and audit logs
+- does not crash execution if one notifier fails
+
+Current limits:
+
+- concrete Slack and email notifier implementations are deferred to Step 9

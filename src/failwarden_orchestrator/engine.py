@@ -16,6 +16,12 @@ from failwarden_orchestrator.models import (
     EscalateStep,
     SSHStep,
 )
+from failwarden_orchestrator.notifiers import (
+    BaseNotifier,
+    NotificationContext,
+    NotificationSendResult,
+    utc_now_iso,
+)
 from failwarden_orchestrator.persistence import SQLiteAuditStore
 
 
@@ -38,12 +44,14 @@ class ExecutionEngine:
         *,
         audit_store: SQLiteAuditStore | None = None,
         audit_logger: AuditLogger | None = None,
+        notifiers: list[BaseNotifier] | None = None,
         sleep_fn: Callable[[int], None] | None = None,
         id_factory: Callable[[], str] | None = None,
     ) -> None:
         self.executor = executor
         self.audit_store = audit_store
         self.audit_logger = audit_logger
+        self.notifiers = notifiers or []
         self.sleep_fn = sleep_fn or time.sleep
         self.id_factory = id_factory or (lambda: str(uuid4()))
 
@@ -81,31 +89,41 @@ class ExecutionEngine:
 
         current_step_id = runbook.entry_step
         final_status = "failed"
+        last_failure_reason = "unknown_failure"
 
         while True:
             step = runbook.steps_by_id[current_step_id]
             step_path.append(step.id)
 
             if isinstance(step, SSHStep):
-                next_step_id, step_attempts = self._run_ssh_step(
+                next_step_id, step_attempts, failure_reason = self._run_ssh_step(
                     runbook=runbook,
                     target=target,
                     execution_id=execution_id,
                     step=step,
                 )
                 attempts += step_attempts
+                if failure_reason is not None:
+                    last_failure_reason = failure_reason
                 current_step_id = next_step_id
                 continue
 
             if isinstance(step, EscalateStep):
                 final_status = "escalated"
+                self._run_escalation(
+                    execution_id=execution_id,
+                    runbook=runbook,
+                    target=target,
+                    step=step,
+                    failure_reason=last_failure_reason,
+                )
                 if self.audit_logger:
                     self.audit_logger.log_escalation(
                         execution_id=execution_id,
                         runbook=runbook.name,
                         target=target,
                         step_id=step.id,
-                        reason="escalation_step_reached",
+                        reason=last_failure_reason,
                     )
                 break
 
@@ -143,7 +161,7 @@ class ExecutionEngine:
         target: str,
         execution_id: str,
         step: SSHStep,
-    ) -> tuple[str, int]:
+    ) -> tuple[str, int, str | None]:
         total_attempts = 1 + step.retries
 
         for attempt_number in range(1, total_attempts + 1):
@@ -165,7 +183,7 @@ class ExecutionEngine:
 
             if self.audit_store:
                 self.audit_store.record_step_attempt(
-                    attempt_id=self.id_factory(),
+                    attempt_id=str(uuid4()),
                     execution_id=execution_id,
                     step_id=step.id,
                     step_type=step.type,
@@ -197,16 +215,103 @@ class ExecutionEngine:
                 )
 
             if matches_expectation:
-                return step.on_success, attempt_number
+                return step.on_success, attempt_number, None
 
             if has_retry_left:
                 self.sleep_fn(step.retry_delay)
                 continue
 
-            return step.on_failure, attempt_number
+            reason = result.error or "step expectation did not match"
+            return step.on_failure, attempt_number, reason
 
         msg = "Step attempt loop ended unexpectedly."
         raise RuntimeError(msg)
+
+    def _run_escalation(
+        self,
+        *,
+        execution_id: str,
+        runbook: CompiledRunbook,
+        target: str,
+        step: EscalateStep,
+        failure_reason: str,
+    ) -> None:
+        """Build context and fan out to all configured notifiers."""
+        context = NotificationContext(
+            execution_id=execution_id,
+            runbook_name=runbook.name,
+            target=target,
+            step_id=step.id,
+            failure_reason=failure_reason,
+            notify_title=step.notify.title,
+            notify_message=step.notify.message,
+            slack_enabled=step.notify.slack_enabled,
+            email_enabled=step.notify.email_enabled,
+            slack_channel=step.notify.slack_channel,
+            email_to=step.notify.email_to or [],
+            occurred_at=utc_now_iso(),
+        )
+
+        for notifier in self.notifiers:
+            result = self._send_notifier(notifier=notifier, context=context)
+            self._record_notification(
+                execution_id=execution_id,
+                runbook_name=runbook.name,
+                target=target,
+                step_id=step.id,
+                result=result,
+            )
+
+    @staticmethod
+    def _send_notifier(
+        *,
+        notifier: BaseNotifier,
+        context: NotificationContext,
+    ) -> NotificationSendResult:
+        """Send notification and normalize any unexpected notifier exception."""
+        try:
+            return notifier.send(context)
+        except Exception as exc:  # noqa: BLE001
+            return NotificationSendResult(
+                notifier_type=notifier.notifier_type,
+                destination="unknown",
+                success=False,
+                error=str(exc),
+            )
+
+    def _record_notification(
+        self,
+        *,
+        execution_id: str,
+        runbook_name: str,
+        target: str,
+        step_id: str,
+        result: NotificationSendResult,
+    ) -> None:
+        """Record one notifier result in persistence and structured audit log."""
+        status = "sent" if result.success else "failed"
+        if self.audit_store:
+            self.audit_store.record_notification(
+                notification_id=str(uuid4()),
+                execution_id=execution_id,
+                step_id=step_id,
+                notifier_type=result.notifier_type,
+                destination=result.destination,
+                status=status,
+                error_summary=result.error,
+            )
+
+        if self.audit_logger:
+            self.audit_logger.log_notification(
+                execution_id=execution_id,
+                runbook=runbook_name,
+                target=target,
+                step_id=step_id,
+                notifier=result.notifier_type,
+                destination=result.destination,
+                result=status,
+                error=result.error,
+            )
 
     @staticmethod
     def _matches_expectation(step: SSHStep, result: ExecutionResult) -> bool:

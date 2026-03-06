@@ -15,6 +15,10 @@ from failwarden_orchestrator.models import (
     SSHExpect,
     SSHStep,
 )
+from failwarden_orchestrator.notifiers import (
+    NotificationContext,
+    NotificationSendResult,
+)
 from failwarden_orchestrator.persistence import SQLiteAuditStore
 
 
@@ -31,6 +35,34 @@ class FakeExecutor:
             msg = "No more fake executor results available."
             raise RuntimeError(msg)
         return self.results.pop(0)
+
+
+class FakeNotifier:
+    """Simple notifier stub that can either succeed or raise an error."""
+
+    def __init__(
+        self,
+        notifier_type: str,
+        destination: str,
+        *,
+        should_fail: bool = False,
+    ) -> None:
+        self.notifier_type = notifier_type
+        self.destination = destination
+        self.should_fail = should_fail
+        self.contexts: list[NotificationContext] = []
+
+    def send(self, context: NotificationContext) -> NotificationSendResult:
+        self.contexts.append(context)
+        if self.should_fail:
+            msg = f"{self.notifier_type} delivery failed"
+            raise RuntimeError(msg)
+        return NotificationSendResult(
+            notifier_type=self.notifier_type,
+            destination=self.destination,
+            success=True,
+            error=None,
+        )
 
 
 def make_runbook(
@@ -239,3 +271,54 @@ def test_engine_writes_persistence_and_audit_artifacts(tmp_path) -> None:
     assert "event=execution_start" in log_text
     assert "event=step_attempt" in log_text
     assert "event=execution_end" in log_text
+
+
+def test_engine_escalation_notifies_all_and_records_outcomes(tmp_path) -> None:
+    runbook = make_runbook(retries=0)
+    executor = FakeExecutor(
+        [
+            ExecutionResult(
+                success=False,
+                output="inactive",
+                error="service check failed",
+                exit_status=1,
+                duration_ms=110,
+                metadata={},
+            )
+        ]
+    )
+
+    slack = FakeNotifier(notifier_type="slack", destination="#ops-alerts")
+    email = FakeNotifier(
+        notifier_type="email",
+        destination="ops@example.local",
+        should_fail=True,
+    )
+
+    db_path = tmp_path / "fwo.sqlite3"
+    audit_dir = tmp_path / "audit"
+    store = SQLiteAuditStore(db_path)
+    store.initialize()
+    logger = AuditLogger(audit_dir)
+
+    engine = ExecutionEngine(
+        executor,
+        audit_store=store,
+        audit_logger=logger,
+        notifiers=[slack, email],
+        id_factory=lambda: "exec-900",
+    )
+
+    result = engine.run(runbook, target="linux-web-01")
+
+    assert result.final_status == "escalated"
+    assert len(slack.contexts) == 1
+    assert len(email.contexts) == 1
+    assert slack.contexts[0].execution_id == "exec-900"
+    assert "service check failed" in slack.contexts[0].failure_reason
+
+    notifications = store.list_notifications("exec-900")
+    assert len(notifications) == 2
+    by_notifier = {item.notifier_type: item for item in notifications}
+    assert by_notifier["slack"].status == "sent"
+    assert by_notifier["email"].status == "failed"
