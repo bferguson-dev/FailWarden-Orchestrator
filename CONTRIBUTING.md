@@ -2,9 +2,25 @@
 
 ## Branch and Merge Policy
 
-- Do not commit directly to `main` after the bootstrap phase.
+- Do not push directly to `main`.
+- Create a topic branch for every change.
 - Open a pull request for all changes.
 - Require at least one review before merge.
+
+Recommended local setup:
+
+```bash
+git config core.hooksPath .githooks
+git checkout -b <topic-branch>
+```
+
+Expected flow:
+
+1. Create a branch.
+2. Make changes and run `./check.sh`.
+3. Push the branch.
+4. Open a pull request using `.github/pull_request_template.md`.
+5. Merge only after review and passing checks.
 
 ## Commit Policy
 
