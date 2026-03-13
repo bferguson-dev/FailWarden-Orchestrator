@@ -169,11 +169,11 @@ class AuditLogger:
     def _format_event(event: AuditEvent) -> str:
         parts = [
             f"ts={_quote(event.timestamp)}",
-            f"level={event.level}",
-            f"event={event.event}",
-            f"execution_id={event.execution_id}",
-            f"runbook={event.runbook}",
-            f"target={event.target}",
+            f"level={_quote(event.level)}",
+            f"event={_quote(event.event)}",
+            f"execution_id={_quote(event.execution_id)}",
+            f"runbook={_quote(event.runbook)}",
+            f"target={_quote(event.target)}",
         ]
         for key, value in event.fields.items():
             parts.append(f"{key}={_quote(value)}")

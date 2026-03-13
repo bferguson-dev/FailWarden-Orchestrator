@@ -5,7 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
+from textwrap import dedent
+
+import yaml
 
 from failwarden_orchestrator.audit import AuditLogger
 from failwarden_orchestrator.compiler import RunbookCompiler
@@ -14,6 +18,7 @@ from failwarden_orchestrator.executors.base import ExecutionResult
 from failwarden_orchestrator.executors.ssh import SSHAuthConfig, SSHExecutor, SSHTarget
 from failwarden_orchestrator.notifiers import EmailNotifier, SlackNotifier
 from failwarden_orchestrator.persistence import SQLiteAuditStore
+from failwarden_orchestrator.validation import RunbookValidationError
 
 
 class _NoopExecutor:
@@ -32,13 +37,37 @@ class _NoopExecutor:
         )
 
 
+def _parser_formatter() -> type[argparse.HelpFormatter]:
+    return argparse.ArgumentDefaultsHelpFormatter
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI argument parser."""
-    parser = argparse.ArgumentParser(prog="fwo", description="FailWarden Orchestrator")
+    parser = argparse.ArgumentParser(
+        prog="fwo",
+        description="FailWarden Orchestrator",
+        formatter_class=_parser_formatter(),
+        epilog=dedent(
+            """
+            Examples:
+              fwo compile --runbook runbooks/linux_service_down.yaml
+              fwo compile --runbook runbooks/linux_service_down.yaml --json
+              fwo run --runbook runbooks/linux_service_down.yaml \\
+                --target linux-web-01 --host 10.0.0.10 --user ubuntu \\
+                --ssh-key ~/.ssh/id_ed25519
+              fwo run --runbook runbooks/linux_service_down.yaml \\
+                --target linux-web-01 --host 10.0.0.10 --user ubuntu \\
+                --ssh-key ~/.ssh/id_ed25519 --dry-run --json
+            """
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     compile_cmd = subparsers.add_parser(
-        "compile", help="Validate and compile a runbook"
+        "compile",
+        help="Validate and compile a runbook",
+        formatter_class=_parser_formatter(),
+        description="Validate a YAML runbook and print a compile summary.",
     )
     compile_cmd.add_argument("--runbook", required=True, help="Path to YAML runbook")
     compile_cmd.add_argument(
@@ -47,8 +76,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Template variable in key=value format (repeatable)",
     )
+    compile_cmd.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit compile result as JSON",
+    )
 
-    run_cmd = subparsers.add_parser("run", help="Run a compiled runbook")
+    run_cmd = subparsers.add_parser(
+        "run",
+        help="Run a compiled runbook",
+        formatter_class=_parser_formatter(),
+        description="Execute a compiled runbook against one SSH target.",
+    )
     run_cmd.add_argument("--runbook", required=True, help="Path to YAML runbook")
     run_cmd.add_argument(
         "--target", required=True, help="Target host alias for audit context"
@@ -82,6 +121,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Simulate run path without executing remote commands",
+    )
+    run_cmd.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit run result as JSON",
     )
 
     return parser
@@ -138,11 +182,29 @@ def build_notifiers_from_env() -> list[object]:
     return notifiers
 
 
-def cmd_compile(runbook_path: str, vars_pairs: list[str]) -> int:
+def _emit_json(payload: dict[str, object]) -> None:
+    """Write one JSON payload to stdout."""
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def cmd_compile(runbook_path: str, vars_pairs: list[str], *, json_output: bool) -> int:
     """Compile command implementation."""
     compiler = RunbookCompiler()
     runtime_vars = parse_vars(vars_pairs)
     compiled = compiler.compile_file(runbook_path, runtime_vars=runtime_vars)
+
+    if json_output:
+        _emit_json(
+            {
+                "entry_step": compiled.entry_step,
+                "name": compiled.name,
+                "runbook_path": str(runbook_path),
+                "step_count": len(compiled.steps_in_order),
+                "step_ids": [step.id for step in compiled.steps_in_order],
+                "version": compiled.version,
+            }
+        )
+        return 0
 
     print("Compile OK")
     print(f"  name: {compiled.name}")
@@ -167,6 +229,9 @@ def cmd_run(args: argparse.Namespace) -> int:
         ssh_password = None
         if args.ssh_password_env:
             ssh_password = os.getenv(args.ssh_password_env)
+            if ssh_password is None:
+                msg = f"SSH password env var '{args.ssh_password_env}' is not set."
+                raise ValueError(msg)
         executor = SSHExecutor(
             target=SSHTarget(host=args.host, user=args.user, port=args.port),
             auth=SSHAuthConfig(key_path=args.ssh_key, password=ssh_password),
@@ -186,9 +251,25 @@ def cmd_run(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
     )
 
+    if args.json:
+        _emit_json(
+            {
+                "attempts": result.attempts,
+                "dry_run": args.dry_run,
+                "dry_run_branch_map": result.dry_run_branch_map,
+                "execution_id": result.execution_id,
+                "final_status": result.final_status,
+                "runbook": compiled.name,
+                "step_path": result.step_path,
+                "target": args.target,
+            }
+        )
+        return 0
+
     print("Run complete")
     print(f"  execution_id: {result.execution_id}")
     print(f"  final_status: {result.final_status}")
+    print(f"  attempts: {result.attempts}")
     print(f"  step_path: {','.join(result.step_path)}")
     if result.dry_run_branch_map is not None:
         print("  dry_run_branch_map:")
@@ -202,10 +283,19 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.command == "compile":
-        return cmd_compile(args.runbook, args.var)
-    if args.command == "run":
-        return cmd_run(args)
+    try:
+        if args.command == "compile":
+            return cmd_compile(args.runbook, args.var, json_output=args.json)
+        if args.command == "run":
+            return cmd_run(args)
+    except RunbookValidationError as exc:
+        print("Runbook validation failed:", file=sys.stderr)
+        for issue in exc.issues:
+            print(f"  {issue.format_human()}", file=sys.stderr)
+        return 2
+    except (FileNotFoundError, ValueError, yaml.YAMLError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
     msg = f"Unknown command '{args.command}'"
     raise ValueError(msg)

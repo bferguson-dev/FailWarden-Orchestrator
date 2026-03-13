@@ -122,3 +122,18 @@ def test_audit_logger_quotes_fields_with_spaces(tmp_path) -> None:
 
     line = read_lines(path)[0]
     assert 'error="smtp timeout while connecting"' in line
+
+
+def test_audit_logger_quotes_core_fields_with_spaces(tmp_path) -> None:
+    logger = AuditLogger(tmp_path / "audit")
+    path = logger.log_execution_start(
+        execution_id="exec 400",
+        runbook="disk full",
+        target="linux db 01",
+        dry_run=False,
+    )
+
+    line = read_lines(path)[0]
+    assert 'execution_id="exec 400"' in line
+    assert 'runbook="disk full"' in line
+    assert 'target="linux db 01"' in line

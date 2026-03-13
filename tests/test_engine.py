@@ -349,3 +349,22 @@ def test_engine_dry_run_does_not_call_executor_and_records_branch_preview() -> N
         "check_service": ["done", "escalate_ops"],
     }
     assert executor.calls == []
+
+
+def test_engine_dry_run_persists_simulated_attempt_as_non_failure(tmp_path) -> None:
+    runbook = make_runbook()
+    executor = FakeExecutor([])
+    store = SQLiteAuditStore(tmp_path / "fwo.sqlite3")
+    store.initialize()
+
+    engine = ExecutionEngine(
+        executor,
+        audit_store=store,
+        id_factory=lambda: "dry-002",
+    )
+    result = engine.run(runbook, target="linux-web-01", dry_run=True)
+
+    attempts = store.list_step_attempts(result.execution_id)
+    assert len(attempts) == 1
+    assert attempts[0].branch_taken == "simulated"
+    assert attempts[0].success is True

@@ -109,7 +109,7 @@ class ExecutionEngine:
                         attempt_number=1,
                         started_at=started_at,
                         ended_at=ended_at,
-                        success=False,
+                        success=True,
                         exit_status=None,
                         duration_ms=0,
                         branch_taken="simulated",

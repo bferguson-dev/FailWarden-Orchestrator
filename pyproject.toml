@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "failwarden-orchestrator"
 version = "0.1.0"
-description = "FailWarden Orchestrator (skeleton phase)"
+description = "Constrained, auditable YAML runbook executor for infrastructure remediation over SSH"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
