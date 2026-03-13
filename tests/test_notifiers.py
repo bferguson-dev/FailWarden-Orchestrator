@@ -65,6 +65,17 @@ def test_slack_notifier_http_error(mock_urlopen: MagicMock) -> None:
     assert "HTTP error" in (result.error or "")
 
 
+def test_slack_notifier_rejects_non_local_http_webhook() -> None:
+    notifier = SlackNotifier(
+        webhook_url="http://hooks.slack.example/services/T000/B000/XXX",
+    )
+
+    result = notifier.send(sample_context())
+
+    assert not result.success
+    assert result.error == "webhook_url must use https unless targeting localhost"
+
+
 @patch("smtplib.SMTP")
 def test_email_notifier_success(mock_smtp_cls: MagicMock) -> None:
     smtp_instance = mock_smtp_cls.return_value.__enter__.return_value

@@ -37,12 +37,12 @@ class SlackNotifier:
         channel = context.slack_channel or self.default_channel
         destination = channel or "default"
         parsed = urlparse(self.webhook_url)
-        if parsed.scheme != "https":
+        if not self._is_supported_webhook_url(parsed.scheme, parsed.hostname):
             return NotificationSendResult(
                 notifier_type=self.notifier_type,
                 destination=destination,
                 success=False,
-                error="webhook_url must use https scheme",
+                error="webhook_url must use https unless targeting localhost",
             )
 
         payload = {
@@ -102,3 +102,10 @@ class SlackNotifier:
             f"reason={context.failure_reason}\n"
             f"message={message}"
         )
+
+    @staticmethod
+    def _is_supported_webhook_url(scheme: str, hostname: str | None) -> bool:
+        """Allow HTTPS everywhere and HTTP only for explicit local testing."""
+        if scheme == "https":
+            return True
+        return scheme == "http" and hostname in {"127.0.0.1", "localhost", "::1"}
