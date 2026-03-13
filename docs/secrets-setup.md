@@ -31,7 +31,8 @@ Preferred approach:
 
 - Use `--ssh-key ~/.ssh/id_ed25519`
 - Protect the key with normal filesystem permissions
-- Keep passphrases in your SSH agent, not in the repo
+- Use an unencrypted automation key dedicated to FailWarden, not your personal key
+- Store that key outside the repo and lock down file permissions
 
 Password fallback:
 
