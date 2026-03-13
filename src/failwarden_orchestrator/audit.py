@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -163,6 +164,10 @@ class AuditLogger:
         log_path = self.audit_dir / f"{execution_id}.log"
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(f"{line}\n")
+        jsonl_path = self.audit_dir / f"{execution_id}.jsonl"
+        with jsonl_path.open("a", encoding="utf-8") as handle:
+            json.dump(asdict(event_data), handle, sort_keys=True)
+            handle.write("\n")
         return log_path
 
     @staticmethod

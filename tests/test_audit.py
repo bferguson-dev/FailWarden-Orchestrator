@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from failwarden_orchestrator.audit import AuditLogger
@@ -28,6 +29,7 @@ def test_audit_logger_writes_per_execution_file(tmp_path) -> None:
 
     assert path.exists()
     assert path.name == "exec-100.log"
+    assert (tmp_path / "audit" / "exec-100.jsonl").exists()
 
 
 def test_audit_logger_records_required_fields(tmp_path) -> None:
@@ -137,3 +139,19 @@ def test_audit_logger_quotes_core_fields_with_spaces(tmp_path) -> None:
     assert 'execution_id="exec 400"' in line
     assert 'runbook="disk full"' in line
     assert 'target="linux db 01"' in line
+
+
+def test_audit_logger_writes_jsonl_events(tmp_path) -> None:
+    logger = AuditLogger(tmp_path / "audit")
+    logger.log_execution_start(
+        execution_id="exec-500",
+        runbook="linux_service_down",
+        target="linux-web-01",
+        dry_run=False,
+    )
+
+    jsonl_path = tmp_path / "audit" / "exec-500.jsonl"
+    payload = json.loads(jsonl_path.read_text(encoding="utf-8").splitlines()[0])
+    assert payload["event"] == "execution_start"
+    assert payload["execution_id"] == "exec-500"
+    assert payload["fields"]["status"] == "running"

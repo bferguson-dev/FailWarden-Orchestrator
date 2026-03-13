@@ -135,6 +135,100 @@ def test_main_run_json_output(
     assert payload["target"] == "linux-web-01"
 
 
+def test_main_run_writes_summary_json(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    summary_path = tmp_path / "run-summary.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fwo",
+            "run",
+            "--runbook",
+            "runbooks/linux_service_down.yaml",
+            "--target",
+            "linux-web-01",
+            "--host",
+            "127.0.0.1",
+            "--user",
+            "ubuntu",
+            "--audit-dir",
+            str(tmp_path / "audit"),
+            "--db-path",
+            str(tmp_path / "fwo.sqlite3"),
+            "--dry-run",
+            "--summary-json",
+            str(summary_path),
+        ],
+    )
+
+    exit_code = main()
+
+    captured = capsys.readouterr()
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert "summary_json:" in captured.out
+    assert payload["execution"]["status"] == "dry_run"
+    assert payload["stats"]["step_attempt_count"] == 1
+
+
+def test_main_show_run_json_output(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "fwo.sqlite3"
+    audit_dir = tmp_path / "audit"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fwo",
+            "run",
+            "--runbook",
+            "runbooks/linux_service_down.yaml",
+            "--target",
+            "linux-web-01",
+            "--host",
+            "127.0.0.1",
+            "--user",
+            "ubuntu",
+            "--audit-dir",
+            str(audit_dir),
+            "--db-path",
+            str(db_path),
+            "--dry-run",
+            "--json",
+        ],
+    )
+    main()
+    first_run = json.loads(capsys.readouterr().out)
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "fwo",
+            "show-run",
+            "--execution-id",
+            first_run["execution_id"],
+            "--db-path",
+            str(db_path),
+            "--audit-dir",
+            str(audit_dir),
+            "--json",
+        ],
+    )
+
+    exit_code = main()
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert payload["execution"]["id"] == first_run["execution_id"]
+    assert payload["audit_jsonl_path"].endswith(".jsonl")
+
+
 def test_main_reports_missing_ssh_password_env(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],

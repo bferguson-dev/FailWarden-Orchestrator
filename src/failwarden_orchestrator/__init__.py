@@ -23,6 +23,7 @@ from failwarden_orchestrator.persistence import (
     SQLiteAuditStore,
     StepAttemptRecord,
 )
+from failwarden_orchestrator.reporting import RunSummary, build_run_summary
 from failwarden_orchestrator.validation import RunbookValidationError, ValidationIssue
 
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "NotificationContext",
     "NotificationSendResult",
     "RunbookCompiler",
+    "RunSummary",
     "RunbookValidationError",
     "SSHAuthConfig",
     "SSHExecutor",
@@ -47,4 +49,5 @@ __all__ = [
     "SQLiteAuditStore",
     "StepAttemptRecord",
     "ValidationIssue",
+    "build_run_summary",
 ]

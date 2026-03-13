@@ -18,6 +18,7 @@ from failwarden_orchestrator.executors.base import ExecutionResult
 from failwarden_orchestrator.executors.ssh import SSHAuthConfig, SSHExecutor, SSHTarget
 from failwarden_orchestrator.notifiers import EmailNotifier, SlackNotifier
 from failwarden_orchestrator.persistence import SQLiteAuditStore
+from failwarden_orchestrator.reporting import build_run_summary, write_run_summary_json
 from failwarden_orchestrator.validation import RunbookValidationError
 
 
@@ -127,6 +128,38 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit run result as JSON",
     )
+    run_cmd.add_argument(
+        "--summary-json",
+        default=None,
+        help="Write a detailed run summary JSON artifact to this path",
+    )
+
+    show_run_cmd = subparsers.add_parser(
+        "show-run",
+        help="Show a persisted execution summary",
+        formatter_class=_parser_formatter(),
+        description="Render one execution summary from SQLite audit history.",
+    )
+    show_run_cmd.add_argument(
+        "--execution-id",
+        required=True,
+        help="Execution identifier to load from the audit store",
+    )
+    show_run_cmd.add_argument(
+        "--db-path",
+        default=".data/fwo.sqlite3",
+        help="SQLite path",
+    )
+    show_run_cmd.add_argument(
+        "--audit-dir",
+        default=".audit",
+        help="Audit log directory",
+    )
+    show_run_cmd.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit execution summary as JSON",
+    )
 
     return parser
 
@@ -185,6 +218,26 @@ def build_notifiers_from_env() -> list[object]:
 def _emit_json(payload: dict[str, object]) -> None:
     """Write one JSON payload to stdout."""
     print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def _print_run_summary(summary: dict[str, object]) -> None:
+    """Write one readable execution summary."""
+    execution = summary["execution"]
+    stats = summary["stats"]
+    print("Execution summary")
+    print(f"  execution_id: {execution['id']}")
+    print(f"  runbook: {execution['runbook_name']}")
+    print(f"  target: {execution['target']}")
+    print(f"  status: {execution['status']}")
+    print(f"  dry_run: {execution['dry_run']}")
+    print(f"  started_at: {execution['started_at']}")
+    print(f"  ended_at: {execution['ended_at']}")
+    print(f"  step_attempts: {stats['step_attempt_count']}")
+    print(f"  notifications: {stats['notification_count']}")
+    if summary["audit_log_path"] is not None:
+        print(f"  audit_log: {summary['audit_log_path']}")
+    if summary["audit_jsonl_path"] is not None:
+        print(f"  audit_jsonl: {summary['audit_jsonl_path']}")
 
 
 def cmd_compile(runbook_path: str, vars_pairs: list[str], *, json_output: bool) -> int:
@@ -251,6 +304,14 @@ def cmd_run(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
     )
 
+    if args.summary_json:
+        summary = build_run_summary(
+            store,
+            result.execution_id,
+            audit_dir=args.audit_dir,
+        )
+        write_run_summary_json(args.summary_json, summary)
+
     if args.json:
         _emit_json(
             {
@@ -271,10 +332,28 @@ def cmd_run(args: argparse.Namespace) -> int:
     print(f"  final_status: {result.final_status}")
     print(f"  attempts: {result.attempts}")
     print(f"  step_path: {','.join(result.step_path)}")
+    if args.summary_json:
+        print(f"  summary_json: {args.summary_json}")
     if result.dry_run_branch_map is not None:
         print("  dry_run_branch_map:")
         print(json.dumps(result.dry_run_branch_map, indent=2, sort_keys=True))
 
+    return 0
+
+
+def cmd_show_run(args: argparse.Namespace) -> int:
+    """Show one persisted execution summary."""
+    store = SQLiteAuditStore(Path(args.db_path))
+    store.initialize()
+    summary = build_run_summary(
+        store,
+        args.execution_id,
+        audit_dir=args.audit_dir,
+    ).to_dict()
+    if args.json:
+        _emit_json(summary)
+    else:
+        _print_run_summary(summary)
     return 0
 
 
@@ -288,6 +367,8 @@ def main() -> int:
             return cmd_compile(args.runbook, args.var, json_output=args.json)
         if args.command == "run":
             return cmd_run(args)
+        if args.command == "show-run":
+            return cmd_show_run(args)
     except RunbookValidationError as exc:
         print("Runbook validation failed:", file=sys.stderr)
         for issue in exc.issues:
