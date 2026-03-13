@@ -46,6 +46,17 @@ def test_build_parser_includes_json_flags() -> None:
     assert run_args.json is True
 
 
+def test_build_parser_supports_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit) as exc_info:
+        parser.parse_args(["--version"])
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 0
+    assert "fwo 0.2.0" in captured.out
+
+
 def test_main_returns_operator_friendly_validation_error(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],

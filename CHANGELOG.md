@@ -37,3 +37,6 @@ All notable changes to this project will be documented in this file.
 - V1.5 persisted run summary export and `show-run` command
 - V1.5 JSONL audit artifact output per execution
 - V1.5 secrets setup guide and updated operator docs
+- V1.5 branch-only contribution flow and CI workflow running `./check.sh`
+- V1.5 controlled local transport integration coverage for SSH, Slack, and SMTP
+- V1.5 release process and `.env.local` example workflow

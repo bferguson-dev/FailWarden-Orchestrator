@@ -44,6 +44,15 @@ python -m pip install -e '.[dev]'
 ./check.sh
 ```
 
+Local env workflow:
+
+```bash
+cp .env.local.example .env.local
+set -a
+source .env.local
+set +a
+```
+
 Compile a runbook:
 
 ```bash
@@ -110,6 +119,7 @@ Optional notifier env vars:
 - `FWO_SMTP_USE_TLS`
 
 Secrets and host-key setup guidance lives in `docs/secrets-setup.md`.
+Release/versioning guidance lives in `RELEASE.md`.
 
 ## Shipped Runbooks
 

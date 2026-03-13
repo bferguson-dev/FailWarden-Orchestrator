@@ -11,6 +11,7 @@ from textwrap import dedent
 
 import yaml
 
+from failwarden_orchestrator import __version__
 from failwarden_orchestrator.audit import AuditLogger
 from failwarden_orchestrator.compiler import RunbookCompiler
 from failwarden_orchestrator.engine import ExecutionEngine
@@ -61,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
                 --ssh-key ~/.ssh/id_ed25519 --dry-run --json
             """
         ),
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
