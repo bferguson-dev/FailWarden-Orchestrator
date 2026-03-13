@@ -44,5 +44,7 @@ Dry-run never executes remote commands.
 ## Persistence and Audit
 
 - SQLite tables: executions, step_attempts, notifications
-- Structured log file per execution in audit directory
+- Structured text log file per execution in audit directory
+- Structured JSONL audit stream per execution in audit directory
 - Correlation key: `execution_id` across DB and log lines
+- `show-run` renders persisted execution summaries from SQLite + audit artifacts

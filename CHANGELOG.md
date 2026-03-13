@@ -33,3 +33,7 @@ All notable changes to this project will be documented in this file.
 - Step 10 dry-run execution mode with simulated step attempts and branch preview
 - Step 11 five shipped runbooks under `runbooks/`
 - Step 12 CLI and documentation polish for end-to-end usage
+- V1.5 CLI JSON output and improved command help
+- V1.5 persisted run summary export and `show-run` command
+- V1.5 JSONL audit artifact output per execution
+- V1.5 secrets setup guide and updated operator docs

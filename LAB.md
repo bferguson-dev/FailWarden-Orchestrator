@@ -31,12 +31,14 @@ python -m pip install -e '.[dev]'
 ## Environment Variables
 
 Copy `.env.example` values into local environment or shell profile.
+See `docs/secrets-setup.md` for host-key and secret handling details.
 
 Common values:
 
 - `FWO_DB_PATH=.data/fwo.sqlite3`
 - `FWO_AUDIT_DIR=.audit`
 - notifier env vars as needed
+- a local-only env var for `--ssh-password-env` if password auth is required
 
 ## Incident Simulation Suggestions
 
@@ -58,6 +60,19 @@ fwo run \
   --dry-run
 ```
 
+Optional summary export:
+
+```bash
+fwo run \
+  --runbook runbooks/linux_service_down.yaml \
+  --target linux-web-01 \
+  --host 10.0.0.10 \
+  --user ubuntu \
+  --ssh-key ~/.ssh/id_ed25519 \
+  --dry-run \
+  --summary-json .artifacts/linux-service-down-summary.json
+```
+
 ## Example Real Validation
 
 ```bash
@@ -73,6 +88,7 @@ fwo run \
 
 - Restart affected services after tests
 - Clear temporary disk filler files
+- Remove local-only secret files if you created temporary ones
 - Reset database and audit artifacts if needed:
 
 ```bash

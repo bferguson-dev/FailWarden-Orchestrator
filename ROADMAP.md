@@ -12,7 +12,7 @@
 - Dry-run simulation mode
 - Five shipped runbooks
 
-## V1.5
+## V1.5 (Implemented)
 
 - CLI ergonomics and better command help
 - Richer audit output formatting

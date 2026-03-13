@@ -50,6 +50,12 @@ Compile a runbook:
 fwo compile --runbook runbooks/linux_service_down.yaml
 ```
 
+Compile as JSON:
+
+```bash
+fwo compile --runbook runbooks/linux_service_down.yaml --json
+```
+
 Dry-run preview (no remote execution):
 
 ```bash
@@ -60,6 +66,19 @@ fwo run \
   --user ubuntu \
   --ssh-key ~/.ssh/id_ed25519 \
   --dry-run
+```
+
+Dry-run preview with persisted JSON summary:
+
+```bash
+fwo run \
+  --runbook runbooks/linux_service_down.yaml \
+  --target linux-web-01 \
+  --host 10.0.0.10 \
+  --user ubuntu \
+  --ssh-key ~/.ssh/id_ed25519 \
+  --dry-run \
+  --summary-json .artifacts/linux-service-down-summary.json
 ```
 
 Real run:
@@ -73,6 +92,12 @@ fwo run \
   --ssh-key ~/.ssh/id_ed25519
 ```
 
+Show a stored execution summary:
+
+```bash
+fwo show-run --execution-id <execution_id> --json
+```
+
 Optional notifier env vars:
 
 - `FWO_SLACK_WEBHOOK_URL`
@@ -83,6 +108,8 @@ Optional notifier env vars:
 - `FWO_SMTP_PASSWORD`
 - `FWO_SMTP_FROM`
 - `FWO_SMTP_USE_TLS`
+
+Secrets and host-key setup guidance lives in `docs/secrets-setup.md`.
 
 ## Shipped Runbooks
 
