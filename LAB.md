@@ -56,7 +56,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519 \
+  --ssh-key ~/.ssh/failwarden_ed25519 \
   --dry-run
 ```
 
@@ -68,7 +68,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519 \
+  --ssh-key ~/.ssh/failwarden_ed25519 \
   --dry-run \
   --summary-json .artifacts/linux-service-down-summary.json
 ```
@@ -81,7 +81,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519
+  --ssh-key ~/.ssh/failwarden_ed25519
 ```
 
 ## Reset Notes

@@ -32,7 +32,11 @@ Explicitly out of scope for V1:
 
 ## Current Status
 
-Steps 1-12 are implemented in sequence for V1 scope.
+- V1 is implemented
+- V1.5 is implemented
+- Current tagged release: `v0.2.0`
+- Default workflow: run `./check.sh`, then push directly to `main`
+- Optional workflow: use a branch and PR when you want an isolated reviewable change set
 
 ## Quick Start
 
@@ -73,7 +77,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519 \
+  --ssh-key ~/.ssh/failwarden_ed25519 \
   --dry-run
 ```
 
@@ -85,7 +89,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519 \
+  --ssh-key ~/.ssh/failwarden_ed25519 \
   --dry-run \
   --summary-json .artifacts/linux-service-down-summary.json
 ```
@@ -98,7 +102,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519
+  --ssh-key ~/.ssh/failwarden_ed25519
 ```
 
 Show a stored execution summary:
@@ -140,4 +144,5 @@ Release/versioning guidance lives in `RELEASE.md`.
 
 - `./check.sh` runs format, lint, secret scan, security scan, dependency audit,
   and tests.
+- GitHub Actions runs the same `./check.sh` gate in CI.
 - `gitleaks` pre-commit hook blocks secret commits.

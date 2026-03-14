@@ -30,7 +30,7 @@ Do not commit:
 
 Preferred approach:
 
-- Use `--ssh-key ~/.ssh/id_ed25519`
+- Use `--ssh-key ~/.ssh/failwarden_ed25519`
 - Protect the key with normal filesystem permissions
 - Use an unencrypted automation key dedicated to FailWarden, not your personal key
 - Store that key outside the repo and lock down file permissions
@@ -110,7 +110,7 @@ fwo run \
   --target linux-web-01 \
   --host 10.0.0.10 \
   --user ubuntu \
-  --ssh-key ~/.ssh/id_ed25519 \
+  --ssh-key ~/.ssh/failwarden_ed25519 \
   --dry-run \
   --summary-json .artifacts/linux-service-down-summary.json
 ```
