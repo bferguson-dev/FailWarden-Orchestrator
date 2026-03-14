@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Block direct pushes to main.
-# All repository changes should flow through a branch and pull request.
 while read -r _local_ref _local_sha remote_ref _remote_sha; do
   if [[ "$remote_ref" == "refs/heads/main" ]]; then
-    echo "[pre-push] Direct pushes to main are blocked."
-    echo "[pre-push] Push your branch and open a pull request instead."
-    exit 1
+    echo "[pre-push] Direct push to main detected."
+    echo "[pre-push] Run ./check.sh before pushing if you have not already."
   fi
 done

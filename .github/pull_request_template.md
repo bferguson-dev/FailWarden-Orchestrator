@@ -10,7 +10,6 @@ Describe what changed and why.
 ## Validation
 
 - [ ] Ran `./check.sh` locally
-- [ ] Branch push only; no direct `main` push
 - [ ] Added or updated tests for behavior changes
 - [ ] Updated docs affected by this change
 

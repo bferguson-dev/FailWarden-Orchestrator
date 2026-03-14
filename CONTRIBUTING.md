@@ -2,25 +2,29 @@
 
 ## Branch and Merge Policy
 
-- Do not push directly to `main`.
-- Create a topic branch for every change.
-- Open a pull request for all changes.
-- Require at least one review before merge.
+- This repository is maintained by one owner.
+- Direct pushes to `main` are allowed after running `./check.sh`.
+- Topic branches and pull requests are optional for larger or riskier changes.
 
 Recommended local setup:
 
 ```bash
 git config core.hooksPath .githooks
-git checkout -b <topic-branch>
 ```
 
-Expected flow:
+Default flow:
+
+1. Make changes.
+2. Run `./check.sh`.
+3. Push to `main`.
+
+Optional branch flow:
 
 1. Create a branch.
 2. Make changes and run `./check.sh`.
 3. Push the branch.
 4. Open a pull request using `.github/pull_request_template.md`.
-5. Merge only after review and passing checks.
+5. Merge after CI passes.
 
 ## Commit Policy
 
@@ -36,7 +40,6 @@ Use Conventional Commits:
 Rules:
 
 - Keep subject concise and specific.
-- Commits must be signed.
 - Pre-commit `gitleaks` must pass.
 
 ## Required Checks
