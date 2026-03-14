@@ -46,6 +46,38 @@ def test_build_parser_includes_json_flags() -> None:
     assert run_args.json is True
 
 
+def test_build_parser_uses_environment_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "fwo.sqlite3"
+    audit_dir = tmp_path / "fwo-audit"
+    ssh_key_path = tmp_path / "test-key"
+    monkeypatch.setenv("FWO_DB_PATH", str(db_path))
+    monkeypatch.setenv("FWO_AUDIT_DIR", str(audit_dir))
+    monkeypatch.setenv("FWO_SSH_KEY_PATH", str(ssh_key_path))
+
+    parser = build_parser()
+    run_args = parser.parse_args(
+        [
+            "run",
+            "--runbook",
+            "runbooks/linux_service_down.yaml",
+            "--target",
+            "linux-web-01",
+            "--host",
+            "127.0.0.1",
+            "--user",
+            "ubuntu",
+            "--dry-run",
+        ]
+    )
+
+    assert run_args.db_path == str(db_path)
+    assert run_args.audit_dir == str(audit_dir)
+    assert run_args.ssh_key == str(ssh_key_path)
+
+
 def test_build_parser_supports_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     parser = build_parser()
 
