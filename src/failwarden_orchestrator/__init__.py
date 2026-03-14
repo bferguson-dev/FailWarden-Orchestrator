@@ -26,6 +26,8 @@ from failwarden_orchestrator.persistence import (
 from failwarden_orchestrator.reporting import RunSummary, build_run_summary
 from failwarden_orchestrator.validation import RunbookValidationError, ValidationIssue
 
+__version__ = "0.2.0"
+
 __all__ = [
     "AuditEvent",
     "AuditLogger",
@@ -49,5 +51,6 @@ __all__ = [
     "SQLiteAuditStore",
     "StepAttemptRecord",
     "ValidationIssue",
+    "__version__",
     "build_run_summary",
 ]

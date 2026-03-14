@@ -11,6 +11,7 @@ from textwrap import dedent
 
 import yaml
 
+from failwarden_orchestrator import __version__
 from failwarden_orchestrator.audit import AuditLogger
 from failwarden_orchestrator.compiler import RunbookCompiler
 from failwarden_orchestrator.engine import ExecutionEngine
@@ -42,6 +43,19 @@ def _parser_formatter() -> type[argparse.HelpFormatter]:
     return argparse.ArgumentDefaultsHelpFormatter
 
 
+def _env_default(name: str, fallback: str) -> str:
+    """Return one string default from the environment or a fallback."""
+    return os.getenv(name, fallback)
+
+
+def _env_default_int(name: str, fallback: int) -> int:
+    """Return one integer default from the environment or a fallback."""
+    value = os.getenv(name)
+    if value is None:
+        return fallback
+    return int(value)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI argument parser."""
     parser = argparse.ArgumentParser(
@@ -61,6 +75,11 @@ def build_parser() -> argparse.ArgumentParser:
                 --ssh-key ~/.ssh/id_ed25519 --dry-run --json
             """
         ),
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -96,7 +115,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_cmd.add_argument("--host", required=True, help="Target host for SSH")
     run_cmd.add_argument("--user", required=True, help="SSH username")
     run_cmd.add_argument("--port", type=int, default=22, help="SSH port (default: 22)")
-    run_cmd.add_argument("--ssh-key", default=None, help="SSH private key path")
+    run_cmd.add_argument(
+        "--ssh-key",
+        default=os.getenv("FWO_SSH_KEY_PATH"),
+        help="SSH private key path",
+    )
     run_cmd.add_argument(
         "--ssh-password-env",
         default=None,
@@ -110,13 +133,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run_cmd.add_argument(
         "--db-path",
-        default=".data/fwo.sqlite3",
-        help="SQLite path (default: .data/fwo.sqlite3)",
+        default=_env_default("FWO_DB_PATH", ".data/fwo.sqlite3"),
+        help="SQLite path",
     )
     run_cmd.add_argument(
         "--audit-dir",
-        default=".audit",
-        help="Audit log directory (default: .audit)",
+        default=_env_default("FWO_AUDIT_DIR", ".audit"),
+        help="Audit log directory",
     )
     run_cmd.add_argument(
         "--dry-run",
@@ -288,6 +311,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         executor = SSHExecutor(
             target=SSHTarget(host=args.host, user=args.user, port=args.port),
             auth=SSHAuthConfig(key_path=args.ssh_key, password=ssh_password),
+            connect_timeout_seconds=_env_default_int("FWO_SSH_CONNECT_TIMEOUT", 10),
             strict_host_key=True,
         )
 

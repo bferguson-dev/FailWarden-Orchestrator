@@ -7,6 +7,7 @@ Keep FailWarden secrets out of git while making local and CI setup predictable.
 ## Recommended Local Layout
 
 - Keep committed defaults in `.env.example`
+- Start from `.env.local.example` for a local shell workflow
 - Put real values in an ignored file such as `.env.local`
 - Load local values into your shell before running `fwo`
 
