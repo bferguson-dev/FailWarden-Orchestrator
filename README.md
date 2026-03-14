@@ -30,6 +30,28 @@ Explicitly out of scope for V1:
 - Dashboard and metrics stack
 - CMDB, approvals, RBAC, multi-tenancy, Vault
 
+## V1.5 Scope
+
+Added on top of V1:
+
+- Better CLI help and JSON output for `compile` and `run`
+- `show-run` summaries and persisted JSON run exports
+- JSONL audit artifacts alongside text audit logs
+- Better secrets and local environment setup docs
+- Controlled local integration coverage for SSH, Slack, and SMTP
+- GitHub Actions CI running the same `./check.sh` gate as local development
+- Release packaging updates for `v0.2.0`
+
+## V2 Scope
+
+Planned next:
+
+- PSRP support
+- HTTP executor
+- Optional dashboard
+- Metrics integration
+- Notification fault isolation
+
 ## Current Status
 
 - V1 is implemented
@@ -37,6 +59,16 @@ Explicitly out of scope for V1:
 - Current tagged release: `v0.2.0`
 - Default workflow: run `./check.sh`, then push directly to `main`
 - Optional workflow: use a branch and PR when you want an isolated reviewable change set
+
+## Validation Status
+
+- Unit and behavior tests cover compiler, engine, CLI, SSH executor, persistence,
+  audit logging, reporting, and notifiers
+- Controlled local integration tests exercise SSH, Slack, and SMTP against local
+  test servers
+- GitHub Actions runs `./check.sh` on branch pushes and pull requests
+- The project has not yet been validated against real production infrastructure
+  or live Slack/SMTP endpoints
 
 ## Quick Start
 
