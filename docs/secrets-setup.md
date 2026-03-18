@@ -4,6 +4,12 @@
 
 Keep FailWarden secrets out of git while making local and CI setup predictable.
 
+Repo safeguards:
+
+- `.githooks/pre-commit` runs `gitleaks` against staged changes
+- `.gitleaks.toml` defines the repo-local allowlist for example-only values
+- `./check.sh` scans the repo for secrets and suspicious staged paths
+
 ## Recommended Local Layout
 
 - Keep committed defaults in `.env.example`
@@ -127,3 +133,4 @@ fwo show-run --execution-id <execution_id> --json
 - Use deploy keys or ephemeral SSH credentials where possible
 - Never print secret values in logs
 - Run `./check.sh` before opening a PR
+- Do not rely on CI to catch values that should never have been staged locally

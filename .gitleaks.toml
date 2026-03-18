@@ -1,0 +1,15 @@
+title = "FailWarden Orchestrator gitleaks config"
+
+[allowlist]
+description = "Allow documentation placeholders and example-only values"
+paths = [
+  '''README\.md''',
+  '''docs/secrets-setup\.md''',
+  '''\.env\.example''',
+  '''\.env\.local\.example'''
+]
+regexes = [
+  '''example\.com''',
+  '''example\.local''',
+  '''hooks\.slack\.com/services/\.\.\.'''
+]

@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Prevent committing secrets from staged changes.
-# --redact avoids printing full secret material in terminal output.
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$ROOT_DIR"
+
+if [[ -z "$(git diff --cached --name-only)" ]]; then
+  exit 0
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "ERROR: gitleaks is not installed."
+  echo "Install it, then retry the commit."
+  exit 1
+fi
+
 echo "[pre-commit] Running gitleaks on staged changes"
-gitleaks protect --staged --no-banner --redact
+gitleaks protect --staged --config "$ROOT_DIR/.gitleaks.toml" --redact --verbose
 
 echo "[pre-commit] gitleaks passed"

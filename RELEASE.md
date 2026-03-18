@@ -16,10 +16,12 @@ Current planned line:
 
 1. Update `pyproject.toml` version.
 2. Update `CHANGELOG.md`.
-3. Run `./check.sh`.
-4. Push the branch and open a pull request.
-5. Merge only after CI is green.
-6. Tag the merge commit with `vX.Y.Z`.
+3. Update README or operator docs if behavior, validation, or workflow changed.
+4. Stage intentionally and review `git diff --cached`.
+5. Run `./check.sh`.
+6. Push the branch and open a pull request, or push directly to `main` only if
+   the change is intentionally using the solo-maintainer fast path.
+7. Tag the release commit with `vX.Y.Z`.
 
 Example:
 
@@ -33,3 +35,5 @@ git push origin v0.2.0
 - Install locally with `python -m pip install -e '.[dev]'`
 - CLI entrypoint remains `fwo`
 - Use `fwo --version` to confirm the installed package version
+- Release readiness still excludes live production validation unless explicitly
+  documented otherwise

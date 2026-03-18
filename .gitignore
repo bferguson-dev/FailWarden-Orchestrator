@@ -19,6 +19,7 @@ dist/
 # Local runtime data
 .audit/
 .data/
+.artifacts/
 
 # Environment files
 .env
@@ -28,6 +29,10 @@ dist/
 
 # Private working notes
 docs/interview-notes.md
+HANDOFF.md
+RESUME_NOTE.md
+SESSION_NOTES.md
+*-handoff.md
 
 # Private/sensitive local files (use .local.* for anything not for GitHub)
 *.local.env

@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
   push:
-    branches-ignore:
-      - main
 
 jobs:
   check:
@@ -24,6 +22,9 @@ jobs:
           curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
           tar -xzf /tmp/gitleaks.tar.gz -C /tmp
           sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+
+      - name: Configure hooks path
+        run: git config core.hooksPath .githooks
 
       - name: Run repo quality gate
         run: ./check.sh

@@ -1,13 +1,31 @@
+*[!] This project is provided as-is, without warranties or guarantees of any
+kind, and has not been validated in a production environment unless explicitly
+stated otherwise. You are solely responsible for evaluating, testing,
+securing, and operating it safely in your environment and for verifying
+compliance with any legal, regulatory, or contractual requirements. By using
+this project, you accept all risk, and the authors and contributors assume no
+liability for any loss, damage, outage, misuse, or other consequences arising
+from its use. [!]*
+
 # FailWarden Orchestrator
 
 FailWarden Orchestrator is a constrained, auditable YAML runbook executor for
 infrastructure remediation over SSH.
 
-## What This Solves
+## Overview
 
 Ops teams often have documented runbooks, but incident response is still manual,
 inconsistent, and hard to audit. This project turns runbook intent into
 validated, executable, and traceable automation.
+
+## Non-Goals
+
+FailWarden Orchestrator does not currently provide:
+
+- Production-validated runbook execution guidance
+- Additional transports such as WinRM, PSRP, HTTP, or Ansible in V1/V1.5
+- Dashboarding, metrics, approvals, RBAC, or multi-tenant orchestration
+- Vault-backed or centralized secret management
 
 ## V1 Scope
 
@@ -70,6 +88,22 @@ Planned next:
 - The project has not yet been validated against real production infrastructure
   or live Slack/SMTP endpoints
 
+## Requirements
+
+- Python 3.11 or newer
+- A local virtual environment under `.venv`
+- `gitleaks` available on your machine for local secret scanning
+- SSH access to the target hosts for non-dry-run execution
+- Strict host key verification data in your local `known_hosts`
+
+## Assumptions
+
+- Runbooks are reviewed and trusted before execution
+- Operators will validate dry-run output before attempting real runs
+- Real secrets, keys, hostnames, and private inventory data stay outside git
+- SQLite-backed local state in `.data/` and audit files in `.audit/` are
+  acceptable for the current scope
+
 ## Quick Start
 
 ```bash
@@ -77,6 +111,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -U pip
 python -m pip install -e '.[dev]'
+git config core.hooksPath .githooks
 ./check.sh
 ```
 
@@ -88,6 +123,12 @@ set -a
 source .env.local
 set +a
 ```
+
+Full disclaimer text lives in `DISCLAIMER.md`.
+Secrets and host-key setup guidance lives in `docs/secrets-setup.md`.
+Release/versioning guidance lives in `RELEASE.md`.
+
+## Usage
 
 Compile a runbook:
 
@@ -143,6 +184,14 @@ Show a stored execution summary:
 fwo show-run --execution-id <execution_id> --json
 ```
 
+## Expected Output
+
+- `fwo compile` validates the runbook and prints a compile summary
+- `fwo run --dry-run` renders the execution plan without remote side effects
+- `fwo run` records execution, step, and notifier history in SQLite
+- audit artifacts are written to `.audit/`
+- optional JSON summaries can be written to a path you control
+
 Optional notifier env vars:
 
 - `FWO_SLACK_WEBHOOK_URL`
@@ -153,9 +202,6 @@ Optional notifier env vars:
 - `FWO_SMTP_PASSWORD`
 - `FWO_SMTP_FROM`
 - `FWO_SMTP_USE_TLS`
-
-Secrets and host-key setup guidance lives in `docs/secrets-setup.md`.
-Release/versioning guidance lives in `RELEASE.md`.
 
 ## Shipped Runbooks
 
@@ -174,7 +220,26 @@ Release/versioning guidance lives in `RELEASE.md`.
 
 ## Quality Gates
 
-- `./check.sh` runs format, lint, secret scan, security scan, dependency audit,
-  and tests.
+- `./check.sh` runs staged Git hygiene checks, formatting, lint, secret scan,
+  security scan, dependency audit, Markdown/config sanity checks, and tests.
 - GitHub Actions runs the same `./check.sh` gate in CI.
-- `gitleaks` pre-commit hook blocks secret commits.
+- `.githooks/pre-commit` runs `gitleaks` against staged changes with the
+  repo-local `.gitleaks.toml`.
+
+## Troubleshooting
+
+- `./check.sh` fails immediately on unstaged changes.
+  Stage intentionally or run with `RUN_GIT_CHECKS=0` only when you are not
+  validating a commit-ready state.
+- `gitleaks` missing locally prevents the pre-commit hook from passing.
+  Install `gitleaks`, then retry.
+- SSH runs fail with host key errors.
+  Populate `~/.ssh/known_hosts` and validate the fingerprint out of band first.
+- notifier tests or local lab runs fail without credentials.
+  Keep real values in `.env.local` or another ignored local file.
+
+## Known Limitations
+
+- The project has not been validated against real production infrastructure.
+- PSRP, HTTP execution, approvals, RBAC, and multi-tenancy remain out of scope.
+- CI validates repository quality gates, not live remote infrastructure behavior.
